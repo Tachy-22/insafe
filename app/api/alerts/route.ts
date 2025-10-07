@@ -75,7 +75,7 @@ export async function GET(request: Request) {
         falsePositives: alerts.filter(a => a.status === 'FALSE_POSITIVE').length
       }
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch alerts' },
       { status: 500 }
@@ -112,7 +112,7 @@ export async function PUT(request: Request) {
       message: 'Alert updated successfully',
       data: updatedAlert
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to update alert' },
       { status: 500 }
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
       message: 'Alert created successfully',
       data: newAlert
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to create alert' },
       { status: 500 }

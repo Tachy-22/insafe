@@ -28,14 +28,13 @@ import {
   Clock,
   User,
   Shield,
-  FileText,
   Bell,
   TrendingUp,
   AlertCircle,
   Ban,
   MessageSquare
 } from 'lucide-react';
-import { alerts, Alert, getActivitiesByEmployeeId } from '@/lib/dummy-data';
+import { alerts, Alert } from '@/lib/dummy-data';
 import { toast } from 'sonner';
 
 const alertCategories = [

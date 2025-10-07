@@ -23,7 +23,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 // Chart component placeholder - in a real app you'd use recharts
-function MiniChart({ data, type = 'line' }: { data: any[], type?: string }) {
+function MiniChart({ data, type = 'line' }: { data: { value: number }[], type?: string }) {
   return (
     <div className="h-16 w-full bg-muted/20 rounded flex items-end justify-between px-1">
       {data.slice(-7).map((item, index) => (

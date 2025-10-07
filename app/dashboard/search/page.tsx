@@ -73,7 +73,10 @@ export default function SearchPage() {
     from: undefined,
     to: undefined
   });
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<({
+    _type: 'employee' | 'activity' | 'alert' | 'restriction';
+    id: string;
+  } & Record<string, unknown>)[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
@@ -166,7 +169,7 @@ export default function SearchPage() {
     }
   };
 
-  const getResultTitle = (result: any) => {
+  const getResultTitle = (result: { _type: string; [key: string]: unknown }) => {
     switch (result._type) {
       case 'employee':
         return `${result.firstName} ${result.lastName} (${result.employeeId})`;
@@ -181,7 +184,7 @@ export default function SearchPage() {
     }
   };
 
-  const getResultDescription = (result: any) => {
+  const getResultDescription = (result: { _type: string; [key: string]: unknown }) => {
     switch (result._type) {
       case 'employee':
         return `${result.department} • ${result.role} • Risk Level: ${result.riskLevel}`;
@@ -403,7 +406,7 @@ export default function SearchPage() {
           <CardHeader>
             <CardTitle>Search Results</CardTitle>
             <CardDescription>
-              Found {searchResults.length} results for "{searchQuery}"
+              Found {searchResults.length} results for &quot;{searchQuery}&quot;
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -561,7 +564,7 @@ export default function SearchPage() {
               <div>
                 <h4 className="font-medium mb-2">Search Examples</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• "Ibrahim Musa" - exact name match</li>
+                  <li>• &quot;Ibrahim Musa&quot; - exact name match</li>
                   <li>• Treasury high risk - department and risk level</li>
                   <li>• USB blocked - activity type and status</li>
                 </ul>

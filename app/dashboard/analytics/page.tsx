@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,24 +8,19 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  BarChart3, 
   TrendingUp, 
   TrendingDown,
   AlertTriangle,
   Users,
   Activity,
-  Clock,
-  Shield,
-  Eye,
   Target,
   Zap,
   Brain,
   RefreshCw,
   Download,
-  Calendar,
-  Filter
+  Calendar
 } from 'lucide-react';
-import { dashboardMetrics, employees, activities, alerts } from '@/lib/dummy-data';
+import { dashboardMetrics } from '@/lib/dummy-data';
 import { toast } from 'sonner';
 
 // Mock advanced analytics data
@@ -158,7 +153,6 @@ const behaviorPatterns = [
 
 export default function AnalyticsPage() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {

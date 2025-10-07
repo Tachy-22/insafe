@@ -245,7 +245,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const getChannelIcon = (channel: any) => {
+  const getChannelIcon = (channel: { icon: React.ComponentType<{ className?: string }> }) => {
     const IconComponent = channel.icon;
     return <IconComponent className="h-4 w-4" />;
   };

@@ -56,7 +56,7 @@ export async function GET(request: Request) {
         permanentRestrictions: restrictions.filter(r => r.severity === 'PERMANENT').length
       }
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch restrictions' },
       { status: 500 }
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       message: 'Restriction applied successfully',
       data: newRestriction
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to apply restriction' },
       { status: 500 }
@@ -126,7 +126,7 @@ export async function PUT(request: Request) {
       message: 'Restriction updated successfully',
       data: updatedRestriction
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to update restriction' },
       { status: 500 }
@@ -155,7 +155,7 @@ export async function DELETE(request: Request) {
       success: true,
       message: 'Restriction removed successfully'
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to remove restriction' },
       { status: 500 }

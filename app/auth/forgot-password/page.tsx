@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Mail, Shield, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ForgotPasswordPage() {
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
               <Alert>
                 <Mail className="h-4 w-4" />
                 <AlertDescription>
-                  Didn't receive the email? Check your spam folder or contact IT support.
+                  Didn&apos;t receive the email? Check your spam folder or contact IT support.
                 </AlertDescription>
               </Alert>
               
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
             <CardDescription className="text-center">
-              Enter your email address and we'll send you instructions to reset your password
+              Enter your email address and we&apos;ll send you instructions to reset your password
             </CardDescription>
           </CardHeader>
           

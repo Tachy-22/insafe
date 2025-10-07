@@ -32,7 +32,7 @@ export interface Activity {
   ipAddress: string;
   deviceId: string;
   status: 'ALLOWED' | 'BLOCKED' | 'FLAGGED' | 'UNDER_REVIEW';
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface Alert {

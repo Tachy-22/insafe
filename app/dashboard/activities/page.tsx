@@ -20,11 +20,9 @@ import {
   MoreHorizontal, 
   Eye, 
   AlertTriangle,
-  Clock,
   Download,
   Play,
-  Pause,
-  Settings
+  Pause
 } from 'lucide-react';
 import { activities, Activity } from '@/lib/dummy-data';
 import { toast } from 'sonner';
@@ -129,10 +127,6 @@ export default function ActivitiesPage() {
     return 'text-green-600';
   };
 
-  const getActivityIcon = (type: string) => {
-    // In a real app, you'd have specific icons for each activity type
-    return <Clock className="h-4 w-4 text-muted-foreground" />;
-  };
 
   return (
     <div className="flex-1 space-y-6 p-6">

@@ -21,22 +21,18 @@ import {
   MoreHorizontal, 
   Eye, 
   AlertTriangle,
-  User,
   Users,
   Shield,
   TrendingUp,
-  TrendingDown,
   Clock,
   MapPin,
   Building,
   Mail,
-  Calendar,
   Activity,
   Bell
 } from 'lucide-react';
 import { employees, Employee, getActivitiesByEmployeeId, getAlertsByEmployeeId } from '@/lib/dummy-data';
 import { toast } from 'sonner';
-import Link from 'next/link';
 
 export default function EmployeesPage() {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>(employees);
@@ -136,7 +132,7 @@ export default function EmployeesPage() {
     });
   };
 
-  const handleAdjustRisk = (employeeId: string) => {
+  const handleAdjustRisk = (_employeeId: string) => {
     const employee = employees.find(emp => emp.id === employeeId);
     if (employee) {
       toast.success('Risk assessment updated', {
