@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { employees, activities, alerts, restrictions } from '@/lib/dummy-data';
 import { toast } from 'sonner';
@@ -69,7 +70,7 @@ const savedSearches = [
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined
   });
@@ -169,14 +170,14 @@ export default function SearchPage() {
     }
   };
 
-  const getResultTitle = (result: { _type: string; [key: string]: unknown }) => {
+  const getResultTitle = (result: { _type: string; [key: string]: unknown }): string => {
     switch (result._type) {
       case 'employee':
         return `${result.firstName} ${result.lastName} (${result.employeeId})`;
       case 'activity':
-        return result.action;
+        return result.action as string;
       case 'alert':
-        return result.title;
+        return result.title as string;
       case 'restriction':
         const employee = result.employee as { firstName: string; lastName: string };
         return `${result.type} restriction for ${employee.firstName} ${employee.lastName}`;
@@ -185,7 +186,7 @@ export default function SearchPage() {
     }
   };
 
-  const getResultDescription = (result: { _type: string; [key: string]: unknown }) => {
+  const getResultDescription = (result: { _type: string; [key: string]: unknown }): string => {
     switch (result._type) {
       case 'employee':
         return `${result.department} • ${result.role} • Risk Level: ${result.riskLevel}`;
@@ -474,25 +475,25 @@ export default function SearchPage() {
                           
                           {result._type === 'employee' && (
                             <Badge variant={result.riskLevel === 'CRITICAL' ? 'destructive' : 'secondary'} className="text-xs">
-                              {result.riskLevel} Risk
+                              {result.riskLevel as ReactNode} Risk
                             </Badge>
                           )}
                           
                           {result._type === 'activity' && (
                             <Badge variant={result.status === 'BLOCKED' ? 'destructive' : 'secondary'} className="text-xs">
-                              {result.status}
+                              {result.status as ReactNode}
                             </Badge>
                           )}
                           
                           {result._type === 'alert' && (
                             <Badge variant={result.severity === 'CRITICAL' ? 'destructive' : 'secondary'} className="text-xs">
-                              {result.severity}
+                              {result.severity as  ReactNode}
                             </Badge>
                           )}
                           
                           {(result._type === 'activity' || result._type === 'alert') && (
                             <span className="text-xs text-muted-foreground">
-                              {new Date(result.timestamp).toLocaleDateString()}
+                              {new Date(result.timestamp as string).toLocaleDateString()}
                             </span>
                           )}
                         </div>
