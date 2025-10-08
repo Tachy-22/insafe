@@ -29,6 +29,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { dashboardMetrics, employees, activities, alerts } from '@/lib/dummy-data';
 import { toast } from 'sonner';
@@ -132,7 +133,7 @@ const complianceMetrics = [
 ];
 
 export default function ReportsPage() {
-  const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>({
     from: new Date(2024, 9, 1), // October 1, 2024
     to: new Date()
   });
