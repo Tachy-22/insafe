@@ -10,7 +10,7 @@ export async function GET() {
       success: true,
       data: dashboardMetrics
     });
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch dashboard metrics' },
       { status: 500 }

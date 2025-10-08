@@ -37,6 +37,7 @@ import {
   Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 const systemStatus = {
   status: 'healthy',
@@ -291,9 +292,11 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-3">
-                <img 
+                <Image 
                   src="/wema-logo.jpeg" 
                   alt="Wema Bank" 
+                  width={32}
+                  height={32}
                   className="h-8 w-8 object-contain rounded"
                 />
                 <span>Organization Settings</span>

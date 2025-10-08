@@ -10,10 +10,8 @@ import {
   Activity, 
   AlertTriangle, 
   Shield, 
-  TrendingUp, 
-  TrendingDown,
+  TrendingUp,
   Clock,
-  Lock,
   FileText,
   Eye,
   ArrowUpRight
@@ -23,7 +21,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 // Chart component placeholder - in a real app you'd use recharts
-function MiniChart({ data, type = 'line' }: { data: { value: number }[], type?: string }) {
+function MiniChart({ data, type: _type = 'line' }: { data: { value: number }[], type?: string }) {
   return (
     <div className="h-16 w-full bg-muted/20 rounded flex items-end justify-between px-1">
       {data.slice(-7).map((item, index) => (
@@ -39,9 +37,9 @@ function MiniChart({ data, type = 'line' }: { data: { value: number }[], type?: 
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState(dashboardMetrics);
-  const [recentActivities, setRecentActivities] = useState(getRecentActivities(5));
-  const [criticalAlerts, setCriticalAlerts] = useState(getCriticalAlerts());
-  const [highRiskEmployees, setHighRiskEmployees] = useState(getHighRiskEmployees());
+  const [recentActivities] = useState(getRecentActivities(5));
+  const [criticalAlerts] = useState(getCriticalAlerts());
+  const [highRiskEmployees] = useState(getHighRiskEmployees());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Simulate real-time updates
@@ -78,15 +76,6 @@ export default function DashboardPage() {
     }
   };
 
-  const getActivityStatusColor = (status: string) => {
-    switch (status) {
-      case 'BLOCKED': return 'text-red-600';
-      case 'FLAGGED': return 'text-orange-600';
-      case 'UNDER_REVIEW': return 'text-yellow-600';
-      case 'ALLOWED': return 'text-green-600';
-      default: return 'text-gray-600';
-    }
-  };
 
   return (
     <div className="flex-1 space-y-6 p-6">

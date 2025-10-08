@@ -9,12 +9,10 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Bell, 
-  BellRing,
   Mail, 
   Smartphone,
   MessageSquare,
@@ -27,11 +25,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Users,
-  Volume2,
-  VolumeX,
-  Eye,
-  EyeOff
+  Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -205,11 +199,11 @@ export default function NotificationsPage() {
     toast.success('All notifications marked as read');
   };
 
-  const handleDeleteNotification = (notificationId: string) => {
+  const handleDeleteNotification = (_notificationId: string) => {
     toast.success('Notification deleted');
   };
 
-  const handleToggleRule = (ruleId: string, enabled: boolean) => {
+  const handleToggleRule = (_ruleId: string, enabled: boolean) => {
     toast.success(`Notification rule ${enabled ? 'enabled' : 'disabled'}`);
   };
 

@@ -78,7 +78,7 @@ export async function GET(request: Request) {
         underReview: activities.filter(a => a.status === 'UNDER_REVIEW').length
       }
     });
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch activities' },
       { status: 500 }
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       message: 'Activity recorded successfully',
       data: newActivity
     });
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to record activity' },
       { status: 500 }

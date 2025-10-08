@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -110,9 +111,11 @@ export function DashboardHeader() {
         {/* System Status */}
         <div className="hidden md:flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <img 
+            <Image 
               src="/wema-logo.jpeg" 
               alt="Wema Bank" 
+              width={24}
+              height={24}
               className="h-6 w-6 object-contain rounded"
             />
             <span className="text-sm font-medium">Wema Bank</span>

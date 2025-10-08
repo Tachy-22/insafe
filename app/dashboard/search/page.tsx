@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,9 +88,9 @@ export default function SearchPage() {
       setSearchQuery(decodeURIComponent(query));
       handleSearch(decodeURIComponent(query));
     }
-  }, []);
+  }, [handleSearch]);
 
-  const handleSearch = async (query?: string) => {
+  const handleSearch = useCallback(async (query?: string) => {
     const searchTerm = query || searchQuery;
     if (!searchTerm.trim()) return;
 
@@ -139,7 +139,7 @@ export default function SearchPage() {
     
     setSearchResults(results);
     setIsSearching(false);
-  };
+  }, [searchQuery, employees, activities, alerts, restrictions]);
 
   const handleSaveSearch = () => {
     if (!searchQuery.trim()) return;

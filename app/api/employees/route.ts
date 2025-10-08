@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       total: employees.length,
       filtered: filteredEmployees.length
     });
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch employees' },
       { status: 500 }
@@ -92,7 +92,7 @@ export async function PUT(request: Request) {
       message: 'Employee updated successfully',
       data: { ...employee, ...updates }
     });
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to update employee' },
       { status: 500 }

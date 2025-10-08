@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 const navigation = [
   {
@@ -121,9 +122,11 @@ export function DashboardSidebar({ collapsed, onToggleCollapse }: DashboardSideb
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         {!collapsed && (
           <div className="flex items-center space-x-3">
-            <img 
+            <Image 
               src="/wema-logo.jpeg" 
               alt="Wema Bank" 
+              width={64}
+              height={64}
               className="h-16 w-16 object-contain rounded"
             />
             <div>
@@ -134,9 +137,11 @@ export function DashboardSidebar({ collapsed, onToggleCollapse }: DashboardSideb
         )}
         
         {collapsed && (
-          <img 
+          <Image 
             src="/wema-logo.jpeg" 
             alt="Wema Bank" 
+            width={64}
+            height={64}
             className="h-16 w-16 object-contain rounded mx-auto"
           />
         )}

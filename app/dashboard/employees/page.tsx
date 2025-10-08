@@ -126,14 +126,14 @@ export default function EmployeesPage() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  const handleViewProfile = (employeeId: string) => {
+  const handleViewProfile = (_employeeId: string) => {
     toast.info('Opening employee profile', {
       description: 'Loading detailed employee information and activity history'
     });
   };
 
   const handleAdjustRisk = (_employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
+    const employee = employees.find(emp => emp.id === _employeeId);
     if (employee) {
       toast.success('Risk assessment updated', {
         description: `Risk level for ${employee.firstName} ${employee.lastName} has been adjusted`
@@ -142,7 +142,6 @@ export default function EmployeesPage() {
   };
 
   const handleSuspendEmployee = (employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
     if (employee) {
       toast.success('Employee suspended', {
         description: `${employee.firstName} ${employee.lastName} access has been suspended`

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -31,9 +32,11 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <img 
+              <Image 
                 src="/wema-logo.jpeg" 
                 alt="Wema Bank" 
+                width={80}
+                height={80}
                 className="h-20 w-auto object-contain"
               />
             </div>
@@ -100,9 +103,11 @@ export default function ForgotPasswordPage() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <img 
+            <Image 
               src="/wema-logo.jpeg" 
               alt="Wema Bank" 
+              width={80}
+              height={80}
               className="h-20 w-auto object-contain"
             />
           </div>

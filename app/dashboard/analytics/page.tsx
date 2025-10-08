@@ -20,7 +20,6 @@ import {
   Download,
   Calendar
 } from 'lucide-react';
-import { dashboardMetrics } from '@/lib/dummy-data';
 import { toast } from 'sonner';
 
 // Mock advanced analytics data
