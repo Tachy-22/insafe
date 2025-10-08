@@ -8,12 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { 
   Search, 
@@ -25,146 +25,214 @@ import {
   Shield,
   TrendingUp,
   Clock,
-  MapPin,
-  Building,
-  Mail,
   Activity,
-  Bell
+  Bell,
+  Usb,
+  GitBranch,
+  Power,
+  Circle,
+  Monitor
 } from 'lucide-react';
-import { employees, Employee, getActivitiesByEmployeeId, getAlertsByEmployeeId } from '@/lib/dummy-data';
+import { employeeService, agentService, commandService } from '@/lib/database';
+import { Employee, Agent } from '@/lib/types';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
 
 export default function EmployeesPage() {
-  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>(employees);
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
   const [riskFilter, setRiskFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [loading, setLoading] = useState(true);
 
-  // Get unique departments
-  const departments = [...new Set(employees.map(emp => emp.department))];
-
-  // Filter employees
   useEffect(() => {
+    if (user) {
+      loadEmployeesData();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    filterEmployees();
+  }, [employees, searchQuery, departmentFilter, riskFilter, statusFilter]);
+
+  const loadEmployeesData = async () => {
+    try {
+      setLoading(true);
+      const [employeesData, agentsData] = await Promise.all([
+        employeeService.getAll(),
+        agentService.getAll()
+      ]);
+      setEmployees(employeesData);
+      setAgents(agentsData);
+    } catch (error) {
+      console.error('Error loading employees:', error);
+      toast.error('Failed to load employees data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterEmployees = () => {
     let filtered = employees;
 
+    // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(
-        employee =>
-          employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.role.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(emp => 
+        emp.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.department.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
+    // Department filter
     if (departmentFilter !== 'ALL') {
-      filtered = filtered.filter(employee => employee.department === departmentFilter);
+      filtered = filtered.filter(emp => emp.department === departmentFilter);
     }
 
+    // Risk filter
     if (riskFilter !== 'ALL') {
-      filtered = filtered.filter(employee => employee.riskLevel === riskFilter);
+      filtered = filtered.filter(emp => emp.riskLevel === riskFilter);
     }
 
+    // Status filter
     if (statusFilter !== 'ALL') {
-      filtered = filtered.filter(employee => employee.status === statusFilter);
+      filtered = filtered.filter(emp => emp.status === statusFilter);
     }
-
-    // Sort by risk level first (highest risk first), then by name
-    filtered.sort((a, b) => {
-      const riskOrder = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
-      if (a.riskLevel !== b.riskLevel) {
-        return riskOrder[b.riskLevel] - riskOrder[a.riskLevel];
-      }
-      return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
-    });
 
     setFilteredEmployees(filtered);
-  }, [searchQuery, departmentFilter, riskFilter, statusFilter]);
-
-  const getRiskBadge = (level: string) => {
-    switch (level) {
-      case 'CRITICAL':
-        return <Badge variant="destructive" className="text-xs">Critical Risk</Badge>;
-      case 'HIGH':
-        return <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">High Risk</Badge>;
-      case 'MEDIUM':
-        return <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">Medium Risk</Badge>;
-      case 'LOW':
-        return <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">Low Risk</Badge>;
-      default:
-        return <Badge variant="secondary" className="text-xs">{level}</Badge>;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">Active</Badge>;
-      case 'SUSPENDED':
-        return <Badge variant="secondary" className="text-xs bg-red-100 text-red-800">Suspended</Badge>;
-      case 'TERMINATED':
-        return <Badge variant="outline" className="text-xs">Terminated</Badge>;
-      default:
-        return <Badge variant="secondary" className="text-xs">{status}</Badge>;
-    }
-  };
-
-  const getRiskScore = (level: string) => {
-    switch (level) {
-      case 'CRITICAL': return 90;
-      case 'HIGH': return 75;
-      case 'MEDIUM': return 50;
-      case 'LOW': return 25;
-      default: return 0;
-    }
   };
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  const handleViewProfile = (_employeeId: string) => {
-    toast.info('Opening employee profile', {
-      description: 'Loading detailed employee information and activity history'
-    });
+  const getEmployeeAgent = (employeeId: string): Agent | undefined => {
+    return agents.find(agent => agent.employeeId === employeeId);
   };
 
-  const handleAdjustRisk = (_employeeId: string) => {
-    const employee = employees.find(emp => emp.id === _employeeId);
-    if (employee) {
-      toast.success('Risk assessment updated', {
-        description: `Risk level for ${employee.firstName} ${employee.lastName} has been adjusted`
+  const isAgentOnline = (agent: Agent | undefined): boolean => {
+    if (!agent) return false;
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return agent.lastSeen.toDate() > fiveMinutesAgo && agent.status === 'online';
+  };
+
+  // Agent control functions
+  const sendAgentCommand = async (employeeId: string, commandType: string) => {
+    try {
+      const response = await fetch('/api/agents/commands', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeId,
+          type: commandType,
+          payload: {}
+        })
       });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        const employee = employees.find(emp => emp.id === employeeId);
+        toast.success(`Command "${commandType}" sent to ${employee?.firstName} ${employee?.lastName}'s device`);
+      } else {
+        toast.error(`Failed to send command: ${result.error}`);
+      }
+    } catch (error) {
+      toast.error('Failed to communicate with agent');
     }
+  };
+
+  const handleDisableUSB = (employeeId: string) => {
+    sendAgentCommand(employeeId, 'disable-usb');
+  };
+
+  const handleEnableUSB = (employeeId: string) => {
+    sendAgentCommand(employeeId, 'enable-usb');
+  };
+
+  const handleBlockGit = (employeeId: string) => {
+    sendAgentCommand(employeeId, 'block-git');
+  };
+
+  const handleUnblockGit = (employeeId: string) => {
+    sendAgentCommand(employeeId, 'unblock-git');
+  };
+
+  const handleGetAgentStatus = (employeeId: string) => {
+    sendAgentCommand(employeeId, 'get-status');
+  };
+
+  const handleViewProfile = (employeeId: string) => {
+    const employee = employees.find(emp => emp.id === employeeId);
+    toast.info(`Viewing profile for ${employee?.firstName} ${employee?.lastName}`);
+  };
+
+  const handleAdjustRisk = (employeeId: string) => {
+    const employee = employees.find(emp => emp.id === employeeId);
+    toast.info(`Adjusting risk level for ${employee?.firstName} ${employee?.lastName}`);
   };
 
   const handleSuspendEmployee = (employeeId: string) => {
     const employee = employees.find(emp => emp.id === employeeId);
-    if (employee) {
-      toast.success('Employee suspended', {
-        description: `${employee.firstName} ${employee.lastName} access has been suspended`
-      });
+    toast.warning(`Suspending access for ${employee?.firstName} ${employee?.lastName}`);
+  };
+
+  // Get unique departments
+  const departments = [...new Set(employees.map(emp => emp.department))];
+
+  const getRiskLevelColor = (level: string) => {
+    switch (level) {
+      case 'CRITICAL': return 'bg-red-500';
+      case 'HIGH': return 'bg-orange-500';
+      case 'MEDIUM': return 'bg-yellow-500';
+      case 'LOW': return 'bg-green-500';
+      default: return 'bg-gray-500';
     }
   };
+
+  const getRiskLevelVariant = (level: string) => {
+    switch (level) {
+      case 'CRITICAL': return 'destructive';
+      case 'HIGH': return 'destructive';
+      case 'MEDIUM': return 'secondary';
+      case 'LOW': return 'secondary';
+      default: return 'secondary';
+    }
+  };
+
+  if (!user) {
+    return <div>Please log in to access the employees page.</div>;
+  }
+
+  if (loading) {
+    return <div className="flex-1 space-y-6 p-6">
+      <div className="text-center">Loading employees...</div>
+    </div>;
+  }
 
   return (
     <div className="flex-1 space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Employee Profiles</h1>
+          <h1 className="text-3xl font-bold">Employee Management</h1>
           <p className="text-muted-foreground">
-            Monitor employee risk assessments and security profiles
+            Monitor employee activities and manage security controls
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={loadEmployeesData}>
             <Users className="mr-2 h-4 w-4" />
-            Bulk Actions
+            Refresh
           </Button>
           
           <Button variant="outline" size="sm">
@@ -196,288 +264,83 @@ export default function EmployeesPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 mr-1" />
-              +12% this week
+              Require attention
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">Online Agents</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {employees.filter(emp => emp.status === 'ACTIVE').length}
+              {agents.filter(agent => isAgentOnline(agent)).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Currently employed
+              Active monitoring
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Suspended</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Controls</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {employees.filter(emp => emp.status === 'SUSPENDED').length}
+            <div className="text-2xl font-bold text-blue-600">
+              {agents.length}
             </div>
-            <p className="text-xs text-muted-foreground">Access restricted</p>
+            <p className="text-xs text-muted-foreground">
+              Deployed agents
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Department Risk Analysis */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Department Risk Analysis</CardTitle>
-          <CardDescription>Detailed security risk assessment by department with actionable insights</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-            {departments.map((dept) => {
-              const deptEmployees = employees.filter(emp => emp.department === dept);
-              const riskCounts = {
-                CRITICAL: deptEmployees.filter(emp => emp.riskLevel === 'CRITICAL').length,
-                HIGH: deptEmployees.filter(emp => emp.riskLevel === 'HIGH').length,
-                MEDIUM: deptEmployees.filter(emp => emp.riskLevel === 'MEDIUM').length,
-                LOW: deptEmployees.filter(emp => emp.riskLevel === 'LOW').length
-              };
-              
-              const totalHighRisk = riskCounts.CRITICAL + riskCounts.HIGH;
-              const riskPercentage = deptEmployees.length > 0 ? (totalHighRisk / deptEmployees.length) * 100 : 0;
-              
-              // Get sample high-risk employees for this department
-              const highRiskEmployees = deptEmployees.filter(emp => emp.riskLevel === 'CRITICAL' || emp.riskLevel === 'HIGH');
-              
-              // Determine department priority
-              const getPriorityLevel = () => {
-                if (riskPercentage >= 30) return { level: 'URGENT', color: 'text-red-600', bg: 'bg-red-50 border-red-200' };
-                if (riskPercentage >= 15) return { level: 'HIGH', color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' };
-                if (riskPercentage >= 5) return { level: 'MEDIUM', color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-200' };
-                return { level: 'LOW', color: 'text-green-600', bg: 'bg-green-50 border-green-200' };
-              };
-              
-              const priority = getPriorityLevel();
-              
-              return (
-                <div key={dept} className={`p-4 rounded-lg border-2 ${priority.bg}`}>
-                  {/* Department Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{dept}</h3>
-                      <p className="text-sm text-muted-foreground">{deptEmployees.length} total employees</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant="outline" className={`${priority.color} border-current`}>
-                        {priority.level} PRIORITY
-                      </Badge>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {riskPercentage.toFixed(1)}% high risk
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Risk Breakdown */}
-                  <div className="space-y-3 mb-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 rounded-lg bg-white/50">
-                        <div className="text-2xl font-bold text-red-600">{riskCounts.CRITICAL}</div>
-                        <div className="text-xs text-muted-foreground">Critical Risk</div>
-                      </div>
-                      <div className="text-center p-3 rounded-lg bg-white/50">
-                        <div className="text-2xl font-bold text-orange-600">{riskCounts.HIGH}</div>
-                        <div className="text-xs text-muted-foreground">High Risk</div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-2 rounded bg-white/30">
-                        <div className="text-lg font-semibold text-yellow-600">{riskCounts.MEDIUM}</div>
-                        <div className="text-xs text-muted-foreground">Medium Risk</div>
-                      </div>
-                      <div className="text-center p-2 rounded bg-white/30">
-                        <div className="text-lg font-semibold text-green-600">{riskCounts.LOW}</div>
-                        <div className="text-xs text-muted-foreground">Low Risk</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Visual Risk Distribution */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Risk Distribution</span>
-                      <span className="text-sm text-muted-foreground">
-                        {totalHighRisk}/{deptEmployees.length} need attention
-                      </span>
-                    </div>
-                    <div className="flex space-x-1 h-3 rounded-full overflow-hidden bg-gray-200">
-                      {riskCounts.CRITICAL > 0 && (
-                        <div 
-                          className="bg-red-500"
-                          style={{ width: `${(riskCounts.CRITICAL / deptEmployees.length) * 100}%` }}
-                          title={`${riskCounts.CRITICAL} Critical Risk Employees`}
-                        />
-                      )}
-                      {riskCounts.HIGH > 0 && (
-                        <div 
-                          className="bg-orange-500"
-                          style={{ width: `${(riskCounts.HIGH / deptEmployees.length) * 100}%` }}
-                          title={`${riskCounts.HIGH} High Risk Employees`}
-                        />
-                      )}
-                      {riskCounts.MEDIUM > 0 && (
-                        <div 
-                          className="bg-yellow-500"
-                          style={{ width: `${(riskCounts.MEDIUM / deptEmployees.length) * 100}%` }}
-                          title={`${riskCounts.MEDIUM} Medium Risk Employees`}
-                        />
-                      )}
-                      {riskCounts.LOW > 0 && (
-                        <div 
-                          className="bg-green-500"
-                          style={{ width: `${(riskCounts.LOW / deptEmployees.length) * 100}%` }}
-                          title={`${riskCounts.LOW} Low Risk Employees`}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* High Risk Employees Preview */}
-                  {highRiskEmployees.length > 0 && (
-                    <div className="border-t pt-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-red-600">Requires Immediate Attention</span>
-                        {highRiskEmployees.length > 2 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{highRiskEmployees.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                      <div className="space-y-1">
-                        {highRiskEmployees.slice(0, 2).map((emp) => (
-                          <div key={emp.id} className="flex items-center justify-between text-xs">
-                            <span>{emp.firstName} {emp.lastName}</span>
-                            <Badge 
-                              variant={emp.riskLevel === 'CRITICAL' ? 'destructive' : 'secondary'}
-                              className="text-xs px-1 py-0"
-                            >
-                              {emp.riskLevel}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Recommendations */}
-                  <div className="mt-4 pt-3 border-t">
-                    <div className="text-xs text-muted-foreground">
-                      <strong>Recommended Actions:</strong>
-                      {riskPercentage >= 30 && (
-                        <span> Immediate security review required. Consider enhanced monitoring and access restrictions.</span>
-                      )}
-                      {riskPercentage >= 15 && riskPercentage < 30 && (
-                        <span> Increase monitoring frequency. Review access permissions for high-risk employees.</span>
-                      )}
-                      {riskPercentage >= 5 && riskPercentage < 15 && (
-                        <span> Monitor trends. Provide additional security training to medium-risk employees.</span>
-                      )}
-                      {riskPercentage < 5 && (
-                        <span> Maintain current monitoring levels. Continue regular security awareness programs.</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Overall Risk Summary */}
-          <div className="mt-6 p-4 rounded-lg bg-muted/50 border">
-            <h4 className="font-medium mb-3">Organization-Wide Risk Summary</h4>
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="text-center">
-                <div className="text-xl font-bold text-red-600">
-                  {employees.filter(emp => emp.riskLevel === 'CRITICAL').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Total Critical</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-orange-600">
-                  {employees.filter(emp => emp.riskLevel === 'HIGH').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Total High Risk</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold">
-                  {departments.filter(dept => {
-                    const deptEmps = employees.filter(emp => emp.department === dept);
-                    const highRiskCount = deptEmps.filter(emp => emp.riskLevel === 'CRITICAL' || emp.riskLevel === 'HIGH').length;
-                    return deptEmps.length > 0 && (highRiskCount / deptEmps.length) >= 0.15;
-                  }).length}
-                </div>
-                <div className="text-sm text-muted-foreground">Departments at Risk</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-green-600">
-                  {(((employees.filter(emp => emp.riskLevel === 'LOW').length) / employees.length) * 100).toFixed(0)}%
-                </div>
-                <div className="text-sm text-muted-foreground">Low Risk Rate</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Filter className="h-5 w-5" />
-            <span>Filter Employees</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-5">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search employees..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+        <CardHeader className="pb-4">
+          <div className="flex items-center space-x-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search employees..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-
+            
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-40">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All Departments</SelectItem>
-                {departments.map((dept) => (
+                {departments.map(dept => (
                   <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={riskFilter} onValueChange={setRiskFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-32">
                 <SelectValue placeholder="Risk Level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Risk Levels</SelectItem>
-                <SelectItem value="CRITICAL">Critical</SelectItem>
-                <SelectItem value="HIGH">High</SelectItem>
-                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="ALL">All Risk</SelectItem>
                 <SelectItem value="LOW">Low</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HIGH">High</SelectItem>
+                <SelectItem value="CRITICAL">Critical</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-32">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -487,52 +350,27 @@ export default function EmployeesPage() {
                 <SelectItem value="TERMINATED">Terminated</SelectItem>
               </SelectContent>
             </Select>
-
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchQuery('');
-                setDepartmentFilter('ALL');
-                setRiskFilter('ALL');
-                setStatusFilter('ALL');
-              }}
-            >
-              Clear Filters
-            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Employees Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Employee Directory</CardTitle>
-          <CardDescription>
-            Showing {filteredEmployees.length} of {employees.length} employees
-          </CardDescription>
         </CardHeader>
+
+        {/* Employee Table */}
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Risk Level</TableHead>
-                  <TableHead>Risk Score</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Active</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Activities</TableHead>
-                  <TableHead>Alerts</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Agent Status</TableHead>
+                  <TableHead>Last Activity</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEmployees.map((employee) => {
-                  const employeeActivities = getActivitiesByEmployeeId(employee.id);
-                  const employeeAlerts = getAlertsByEmployeeId(employee.id);
-                  const highRiskActivities = employeeActivities.filter(a => a.riskScore >= 7).length;
+                  const agent = getEmployeeAgent(employee.id);
+                  const agentOnline = isAgentOnline(agent);
                   
                   return (
                     <TableRow key={employee.id}>
@@ -551,82 +389,47 @@ export default function EmployeesPage() {
                               {employee.employeeId} • {employee.role}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              <Mail className="inline h-3 w-3 mr-1" />
                               {employee.email}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-
+                      <TableCell>{employee.department}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Building className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="text-sm font-medium">{employee.department}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Manager: {employee.manager}
-                            </div>
+                          <div className={`w-2 h-2 rounded-full ${getRiskLevelColor(employee.riskLevel)}`} />
+                          <Badge variant={getRiskLevelVariant(employee.riskLevel) as any} className="text-xs">
+                            {employee.riskLevel}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            ({employee.riskScore})
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {agent ? (
+                          <div className="flex items-center space-x-2">
+                            <Circle 
+                              className={`w-2 h-2 ${agentOnline ? 'text-green-500 fill-current' : 'text-gray-400 fill-current'}`} 
+                            />
+                            <span className="text-xs">
+                              {agentOnline ? 'Online' : 'Offline'}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {agent.platform}
+                            </Badge>
                           </div>
-                        </div>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">
+                            No Agent
+                          </Badge>
+                        )}
                       </TableCell>
-
-                      <TableCell>
-                        {getRiskBadge(employee.riskLevel)}
+                      <TableCell className="text-xs text-muted-foreground">
+                        <Clock className="inline h-3 w-3 mr-1" />
+                        {employee.lastActivity.toDate().toLocaleString()}
                       </TableCell>
-
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">
-                            {getRiskScore(employee.riskLevel)}%
-                          </div>
-                          <Progress 
-                            value={getRiskScore(employee.riskLevel)} 
-                            className="w-16 h-2"
-                          />
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        {getStatusBadge(employee.status)}
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(employee.lastActive).toLocaleDateString()}</span>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{employee.location}</span>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="text-center">
-                          <div className="text-sm font-medium">{employeeActivities.length}</div>
-                          {highRiskActivities > 0 && (
-                            <div className="text-xs text-red-600">
-                              {highRiskActivities} high risk
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="text-center">
-                          <div className="text-sm font-medium">{employeeAlerts.length}</div>
-                          {employeeAlerts.filter(a => a.severity === 'CRITICAL').length > 0 && (
-                            <div className="text-xs text-red-600">
-                              {employeeAlerts.filter(a => a.severity === 'CRITICAL').length} critical
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
+                      <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -646,14 +449,49 @@ export default function EmployeesPage() {
                               <Shield className="mr-2 h-4 w-4" />
                               Adjust Risk Level
                             </DropdownMenuItem>
+                            
+                            {agent && agentOnline && (
+                              <>
+                                <DropdownMenuSeparator />
+                                {/* Agent Controls */}
+                                <DropdownMenuItem onClick={() => handleGetAgentStatus(employee.id)}>
+                                  <Monitor className="mr-2 h-4 w-4" />
+                                  Check Agent Status
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem onClick={() => handleDisableUSB(employee.id)} className="text-red-600">
+                                  <Usb className="mr-2 h-4 w-4" />
+                                  Disable USB
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem onClick={() => handleEnableUSB(employee.id)} className="text-green-600">
+                                  <Usb className="mr-2 h-4 w-4" />
+                                  Enable USB
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem onClick={() => handleBlockGit(employee.id)} className="text-red-600">
+                                  <GitBranch className="mr-2 h-4 w-4" />
+                                  Block Git
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem onClick={() => handleUnblockGit(employee.id)} className="text-green-600">
+                                  <GitBranch className="mr-2 h-4 w-4" />
+                                  Unblock Git
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            
                             {employee.status === 'ACTIVE' && (
-                              <DropdownMenuItem 
-                                onClick={() => handleSuspendEmployee(employee.id)}
-                                className="text-red-600"
-                              >
-                                <AlertTriangle className="mr-2 h-4 w-4" />
-                                Suspend Access
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleSuspendEmployee(employee.id)}
+                                  className="text-red-600"
+                                >
+                                  <AlertTriangle className="mr-2 h-4 w-4" />
+                                  Suspend Access
+                                </DropdownMenuItem>
+                              </>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>

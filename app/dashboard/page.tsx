@@ -4,67 +4,69 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { 
   Users, 
   Activity, 
   AlertTriangle, 
   Shield, 
+  Monitor,
   TrendingUp,
   Clock,
-  FileText,
-  Eye,
-  ArrowUpRight
+  ArrowUpRight,
+  Usb,
+  GitBranch,
+  Circle
 } from 'lucide-react';
-import { dashboardMetrics, getRecentActivities, getCriticalAlerts, getHighRiskEmployees, DashboardMetrics } from '@/lib/dummy-data';
+import { employeeService, agentService, alertService, activityService } from '@/lib/database';
+import { Employee, Agent, Alert, Activity as ActivityType } from '@/lib/types';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-// Chart component placeholder - in a real app you'd use recharts
-function MiniChart({ data, type: _type = 'line' }: { data: DashboardMetrics['trendsData'], type?: string }) {
-  return (
-    <div className="h-16 w-full bg-muted/20 rounded flex items-end justify-between px-1">
-      {data.slice(-7).map((item, index) => (
-        <div 
-          key={index}
-          className="bg-primary/60 w-2 rounded-t"
-          style={{ height: `${(item.activities / 3000) * 100}%` }}
-        />
-      ))}
-    </div>
-  );
-}
+import { useAuth } from '@/lib/auth-context';
 
 export default function DashboardPage() {
-  const [metrics, setMetrics] = useState(dashboardMetrics);
-  const [recentActivities] = useState(getRecentActivities(5));
-  const [criticalAlerts] = useState(getCriticalAlerts());
-  const [highRiskEmployees] = useState(getHighRiskEmployees());
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [activities, setActivities] = useState<ActivityType[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Simulate real-time updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate new activities
-      setMetrics(prev => ({
-        ...prev,
-        activeAlerts: prev.activeAlerts + Math.floor(Math.random() * 3) - 1,
-        blockedActions: prev.blockedActions + Math.floor(Math.random() * 5)
-      }));
-    }, 30000); // Update every 30 seconds
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      const [employeesData, agentsData, alertsData, activitiesData] = await Promise.all([
+        employeeService.getAll(),
+        agentService.getAll(),
+        alertService.getOpen(),
+        activityService.getRecent(10)
+      ]);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    
-    // Simulate API refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsRefreshing(false);
-    toast.success('Dashboard data refreshed');
+      setEmployees(employeesData);
+      setAgents(agentsData);
+      setAlerts(alertsData);
+      setActivities(activitiesData);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const onlineAgents = agents.filter(agent => {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return agent.lastSeen.toDate() > fiveMinutesAgo && agent.status === 'online';
+  });
+
+  const criticalAlerts = alerts.filter(alert => alert.severity === 'CRITICAL');
+  const highRiskEmployees = employees.filter(emp => emp.riskLevel === 'HIGH' || emp.riskLevel === 'CRITICAL');
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
@@ -76,21 +78,30 @@ export default function DashboardPage() {
     }
   };
 
+  if (!user) {
+    return <div>Please log in to access the dashboard.</div>;
+  }
+
+  if (loading) {
+    return <div className="flex-1 space-y-6 p-6">
+      <div className="text-center">Loading dashboard...</div>
+    </div>;
+  }
 
   return (
     <div className="flex-1 space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Insider Threat Monitoring</h1>
+          <h1 className="text-3xl font-bold">InSafe Security Dashboard</h1>
           <p className="text-muted-foreground">
-            Real-time monitoring and threat detection for Wema Bank Nigeria
+            Real-time insider threat monitoring for Wema Bank Nigeria
           </p>
         </div>
         
-        <Button onClick={handleRefresh} disabled={isRefreshing}>
+        <Button onClick={loadDashboardData}>
           <Activity className="mr-2 h-4 w-4" />
-          {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+          Refresh Data
         </Button>
       </div>
 
@@ -102,25 +113,20 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalEmployees.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +2.1% from last month
-              </span>
-            </p>
+            <div className="text-2xl font-bold">{employees.length}</div>
+            <p className="text-xs text-muted-foreground">Under monitoring</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Monitoring</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Online Agents</CardTitle>
+            <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeMonitoring.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">{onlineAgents.length}</div>
             <p className="text-xs text-muted-foreground">
-              {((metrics.activeMonitoring / metrics.totalEmployees) * 100).toFixed(1)}% coverage
+              {agents.length > 0 ? `${((onlineAgents.length / agents.length) * 100).toFixed(1)}% online` : 'No agents'}
             </p>
           </CardContent>
         </Card>
@@ -131,100 +137,34 @@ export default function DashboardPage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{metrics.activeAlerts}</div>
+            <div className="text-2xl font-bold text-orange-600">{alerts.length}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-red-600 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +15% from yesterday
-              </span>
+              {criticalAlerts.length} critical
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compliance Score</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">High Risk Users</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{metrics.complianceScore}%</div>
-            <Progress value={metrics.complianceScore} className="mt-2" />
+            <div className="text-2xl font-bold text-red-600">{highRiskEmployees.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Require attention
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Risk Distribution & Activity Chart */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Risk Distribution</CardTitle>
-            <CardDescription>Employee risk levels across the organization</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm">Low Risk</span>
-                </div>
-                <div className="text-sm font-medium">{metrics.riskDistribution.low}</div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <span className="text-sm">Medium Risk</span>
-                </div>
-                <div className="text-sm font-medium">{metrics.riskDistribution.medium}</div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500" />
-                  <span className="text-sm">High Risk</span>
-                </div>
-                <div className="text-sm font-medium">{metrics.riskDistribution.high}</div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-sm">Critical Risk</span>
-                </div>
-                <div className="text-sm font-medium">{metrics.riskDistribution.critical}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity Trends</CardTitle>
-            <CardDescription>7-day activity overview</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MiniChart data={metrics.trendsData} />
-            <div className="flex items-center justify-between mt-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Blocked: </span>
-                <span className="font-medium text-red-600">{metrics.blockedActions}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Exfiltration Attempts: </span>
-                <span className="font-medium text-orange-600">{metrics.dataExfiltrationAttempts}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activities & Critical Alerts */}
+      {/* Recent Activities & Online Agents */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Activities</CardTitle>
-              <CardDescription>Latest user activities requiring attention</CardDescription>
+              <CardDescription>Latest security events</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href="/dashboard/activities">
@@ -233,37 +173,80 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg border">
-                <div className="flex-shrink-0">
-                  <Activity className="h-4 w-4 text-muted-foreground mt-0.5" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">
-                      {activity.employee.firstName} {activity.employee.lastName}
-                    </p>
-                    <Badge variant="outline" className="text-xs">
-                      {activity.employee.employeeId}
-                    </Badge>
+            {activities.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No recent activities</p>
+            ) : (
+              activities.slice(0, 5).map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg border">
+                  <div className="flex-shrink-0">
+                    <Activity className="h-4 w-4 text-muted-foreground mt-0.5" />
                   </div>
-                  <p className="text-sm text-muted-foreground">{activity.description}</p>
-                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>{new Date(activity.timestamp).toLocaleString()}</span>
-                    <Badge 
-                      variant={activity.status === 'BLOCKED' ? 'destructive' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {activity.status}
-                    </Badge>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium">{activity.description}</p>
+                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{activity.timestamp.toDate().toLocaleString()}</span>
+                      <Badge 
+                        variant={activity.blocked ? 'destructive' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {activity.blocked ? 'Blocked' : activity.riskLevel}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Online Agents</CardTitle>
+              <CardDescription>Active endpoint monitoring</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/employees">
+                Manage <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {onlineAgents.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No agents online</p>
+            ) : (
+              onlineAgents.slice(0, 5).map((agent) => {
+                const employee = employees.find(emp => emp.id === agent.employeeId);
+                return (
+                  <div key={agent.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                      <Circle className="w-3 h-3 text-green-500 fill-current" />
+                      <div>
+                        <p className="text-sm font-medium">{agent.hostname}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown User'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="outline" className="text-xs">
+                        {agent.platform}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {agent.lastSeen.toDate().toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Critical Alerts */}
+      {criticalAlerts.length > 0 && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -277,75 +260,31 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {criticalAlerts.slice(0, 3).map((alert) => (
-              <div key={alert.id} className="flex items-start space-x-3 p-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
-                <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">{alert.title}</p>
-                    <Badge variant="destructive" className="text-xs">
-                      {alert.severity}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{alert.description}</p>
-                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                    <span>{alert.employee.firstName} {alert.employee.lastName}</span>
-                    <span>•</span>
-                    <span>{new Date(alert.timestamp).toLocaleString()}</span>
+            {criticalAlerts.slice(0, 3).map((alert) => {
+              const employee = employees.find(emp => emp.id === alert.employeeId);
+              return (
+                <div key={alert.id} className="flex items-start space-x-3 p-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
+                  <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm font-medium">{alert.title}</p>
+                      <Badge variant="destructive" className="text-xs">
+                        {alert.severity}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{alert.description}</p>
+                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                      <span>{employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown User'}</span>
+                      <span>•</span>
+                      <span>{alert.createdAt.toDate().toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
-      </div>
-
-      {/* High Risk Employees */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>High Risk Employees</CardTitle>
-            <CardDescription>Employees requiring immediate attention</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/employees">
-              View All <ArrowUpRight className="ml-1 h-3 w-3" />
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {highRiskEmployees.slice(0, 4).map((employee) => (
-              <div key={employee.id} className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${getRiskLevelColor(employee.riskLevel)}`} />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {employee.firstName} {employee.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {employee.department} • {employee.role}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge 
-                    variant={employee.riskLevel === 'CRITICAL' ? 'destructive' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {employee.riskLevel} RISK
-                  </Badge>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dashboard/employees/${employee.id}`}>
-                      <Eye className="h-3 w-3" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 }

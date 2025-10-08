@@ -1,0 +1,109 @@
+import { Timestamp } from 'firebase/firestore';
+
+export interface Employee {
+  id: string;
+  employeeId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  department: string;
+  role: string;
+  hireDate: Timestamp;
+  status: 'ACTIVE' | 'SUSPENDED' | 'TERMINATED';
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  riskScore: number;
+  lastActivity: Timestamp;
+  permissions: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface Agent {
+  id: string;
+  agentId: string;
+  employeeId: string; // Links to Employee
+  hostname: string;
+  platform: 'windows' | 'darwin' | 'linux';
+  version: string;
+  macAddress: string;
+  ipAddress: string;
+  status: 'online' | 'offline' | 'error';
+  lastSeen: Timestamp;
+  systemInfo: {
+    uptime: number;
+    memory: {
+      total: number;
+      free: number;
+    };
+    cpu: {
+      count: number;
+      usage: number;
+    };
+  };
+  capabilities: {
+    usbControl: boolean;
+    gitControl: boolean;
+    fileMonitoring: boolean;
+  };
+  registeredAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface Command {
+  id: string;
+  agentId: string;
+  employeeId: string;
+  type: 'disable-usb' | 'enable-usb' | 'block-git' | 'unblock-git' | 'get-status' | 'restart-agent';
+  payload?: any;
+  status: 'pending' | 'executing' | 'completed' | 'failed';
+  issuedBy: string; // Admin user ID
+  createdAt: Timestamp;
+  executedAt?: Timestamp;
+  completedAt?: Timestamp;
+  result?: any;
+  error?: string;
+}
+
+export interface Activity {
+  id: string;
+  employeeId: string;
+  agentId: string;
+  type: 'file_access' | 'usb_detected' | 'git_operation' | 'login' | 'application_usage' | 'network_activity';
+  description: string;
+  details: {
+    fileName?: string;
+    filePath?: string;
+    application?: string;
+    command?: string;
+    size?: number;
+    duration?: number;
+  };
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  blocked: boolean;
+  timestamp: Timestamp;
+}
+
+export interface Alert {
+  id: string;
+  employeeId: string;
+  type: 'high_risk_activity' | 'policy_violation' | 'anomalous_behavior' | 'security_breach';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  title: string;
+  description: string;
+  details: any;
+  status: 'open' | 'investigating' | 'resolved' | 'false_positive';
+  assignedTo?: string;
+  createdAt: Timestamp;
+  resolvedAt?: Timestamp;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'super_admin' | 'admin' | 'analyst';
+  permissions: string[];
+  createdAt: Timestamp;
+  lastLogin: Timestamp;
+}

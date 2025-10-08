@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,23 +21,34 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate authentication
-    setTimeout(() => {
-      if (email === 'admin@wemabank.com' && password === 'admin123') {
-        localStorage.setItem('auth', 'true');
-        localStorage.setItem('userEmail', email);
-        router.push('/dashboard');
-      } else {
-        setError('Invalid credentials. Use admin@wemabank.com / admin123');
+    try {
+      await signIn(email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      let errorMessage = 'Invalid credentials. Please try again.';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
       }
+      
+      setError(errorMessage);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -150,13 +162,13 @@ export default function LoginPage() {
           </form>
         </Card>
 
-        {/* Demo Credentials */}
+        {/* Setup Instructions */}
         <Card className="border-dashed">
           <CardContent className="pt-6">
             <div className="text-center space-y-2">
-              <p className="text-sm font-medium">Demo Credentials</p>
-              <p className="text-xs text-muted-foreground">Email: admin@wemabank.com</p>
-              <p className="text-xs text-muted-foreground">Password: admin123</p>
+              <p className="text-sm font-medium">Firebase Authentication</p>
+              <p className="text-xs text-muted-foreground">Use your Firebase admin credentials</p>
+              <p className="text-xs text-muted-foreground">Configure users in Firebase Console</p>
             </div>
           </CardContent>
         </Card>
