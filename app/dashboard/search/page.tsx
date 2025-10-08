@@ -80,16 +80,6 @@ export default function SearchPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Get search query from URL params if exists
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('q');
-    if (query) {
-      setSearchQuery(decodeURIComponent(query));
-      handleSearch(decodeURIComponent(query));
-    }
-  }, [handleSearch]);
-
   const handleSearch = useCallback(async (query?: string) => {
     const searchTerm = query || searchQuery;
     if (!searchTerm.trim()) return;
@@ -140,6 +130,16 @@ export default function SearchPage() {
     setSearchResults(results);
     setIsSearching(false);
   }, [searchQuery, employees, activities, alerts, restrictions]);
+
+  // Get search query from URL params if exists
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
+    if (query) {
+      setSearchQuery(decodeURIComponent(query));
+      handleSearch(decodeURIComponent(query));
+    }
+  }, [handleSearch]);
 
   const handleSaveSearch = () => {
     if (!searchQuery.trim()) return;
