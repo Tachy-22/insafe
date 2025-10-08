@@ -142,6 +142,7 @@ export default function EmployeesPage() {
   };
 
   const handleSuspendEmployee = (employeeId: string) => {
+    const employee = employees.find(emp => emp.id === employeeId);
     if (employee) {
       toast.success('Employee suspended', {
         description: `${employee.firstName} ${employee.lastName} access has been suspended`
