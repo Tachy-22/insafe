@@ -178,7 +178,8 @@ export default function SearchPage() {
       case 'alert':
         return result.title;
       case 'restriction':
-        return `${result.type} restriction for ${result.employee.firstName} ${result.employee.lastName}`;
+        const employee = result.employee as { firstName: string; lastName: string };
+        return `${result.type} restriction for ${employee.firstName} ${employee.lastName}`;
       default:
         return 'Unknown';
     }
