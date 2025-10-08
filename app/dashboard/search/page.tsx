@@ -99,7 +99,7 @@ export default function SearchPage() {
       emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.role.toLowerCase().includes(searchTerm.toLowerCase())
-    ).map(emp => ({ ...emp, _type: 'employee' }));
+    ).map(emp => ({ ...emp, _type: 'employee' as const }));
     
     // Search activities
     const matchingActivities = activities.filter(act => 
@@ -107,7 +107,7 @@ export default function SearchPage() {
       act.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
       act.employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       act.employee.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-    ).map(act => ({ ...act, _type: 'activity' }));
+    ).map(act => ({ ...act, _type: 'activity' as const }));
     
     // Search alerts
     const matchingAlerts = alerts.filter(alert => 
@@ -115,7 +115,7 @@ export default function SearchPage() {
       alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       alert.employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       alert.employee.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-    ).map(alert => ({ ...alert, _type: 'alert' }));
+    ).map(alert => ({ ...alert, _type: 'alert' as const }));
     
     // Search restrictions
     const matchingRestrictions = restrictions.filter(rest => 
@@ -123,7 +123,7 @@ export default function SearchPage() {
       rest.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rest.employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rest.employee.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-    ).map(rest => ({ ...rest, _type: 'restriction' }));
+    ).map(rest => ({ ...rest, _type: 'restriction' as const }));
     
     results.push(...matchingEmployees, ...matchingActivities, ...matchingAlerts, ...matchingRestrictions);
     
