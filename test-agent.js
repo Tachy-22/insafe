@@ -103,7 +103,7 @@ class InSafeTestAgent {
       if (response.data.success) {
         this.agentId = response.data.agentId
         this.token = response.data.token
-        this.pollInterval = response.data.pollInterval || 30000
+        this.pollInterval = response.data.pollInterval || 2000
         
         console.log(`✅ Registration successful!`)
         console.log(`🆔 Agent ID: ${this.agentId}`)
