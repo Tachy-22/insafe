@@ -156,8 +156,9 @@ export function sendCommandToAgent(agentId: string, type: Command['type'], paylo
 
   // If agent is online, send immediately
   const socketId = agentSockets.get(agentId)
-  if (socketId && (global as any).io) {
-    (global as any).io.to(socketId).emit('command', command)
+  // Note: Socket.IO integration disabled for polling-based approach
+  if (socketId && false) {
+    // This would be used if Socket.IO was enabled
     command.status = 'sent'
     commands.set(command.id, command)
   }

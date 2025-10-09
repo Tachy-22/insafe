@@ -55,7 +55,7 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     filterEmployees();
-  }, [employees, searchQuery, departmentFilter, riskFilter, statusFilter, filterEmployees]);
+  }, [employees, searchQuery, departmentFilter, riskFilter, statusFilter]);
 
   const loadEmployeesData = async () => {
     try {
