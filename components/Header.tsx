@@ -8,7 +8,7 @@ export const Header = () => {
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center gap-3">
-                        <Shield className="w-8 h-8 text-primary" />
+                        <Shield className="w-8 h-8 text-primary" /> hi
                         <div>
                             <h1 className="text-xl font-bold text-foreground">InSafe</h1>
                             <p className="text-xs text-muted-foreground">by Wema Bank</p>
