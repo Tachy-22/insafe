@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   Search, 
-  Filter, 
   MoreHorizontal, 
   Eye, 
   AlertTriangle,
@@ -29,11 +28,10 @@ import {
   Bell,
   Usb,
   GitBranch,
-  Power,
   Circle,
   Monitor
 } from 'lucide-react';
-import { employeeService, agentService, commandService } from '@/lib/database';
+import { employeeService, agentService } from '@/lib/database';
 import { Employee, Agent } from '@/lib/types';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
@@ -76,7 +74,7 @@ export default function EmployeesPage() {
     }
   };
 
-  const filterEmployees = () => {
+  const filterEmployees = useCallback(() => {
     let filtered = employees;
 
     // Search filter
@@ -106,7 +104,7 @@ export default function EmployeesPage() {
     }
 
     setFilteredEmployees(filtered);
-  };
+  }, [employees, searchQuery, departmentFilter, riskFilter, statusFilter]);
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -147,7 +145,7 @@ export default function EmployeesPage() {
       } else {
         toast.error(`Failed to send command: ${result.error}`);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to communicate with agent');
     }
   };
@@ -394,7 +392,7 @@ export default function EmployeesPage() {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <div className={`w-2 h-2 rounded-full ${getRiskLevelColor(employee.riskLevel)}`} />
-                          <Badge variant={getRiskLevelVariant(employee.riskLevel) as any} className="text-xs">
+                          <Badge variant={getRiskLevelVariant(employee.riskLevel) as "default" | "destructive" | "outline" | "secondary"} className="text-xs">
                             {employee.riskLevel}
                           </Badge>
                           <span className="text-xs text-muted-foreground">

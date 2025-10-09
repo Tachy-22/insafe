@@ -5,7 +5,7 @@ import {
   getDoc, 
   addDoc, 
   updateDoc, 
-  deleteDoc, 
+ 
   query, 
   where, 
   orderBy, 
@@ -14,7 +14,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Employee, Agent, Command, Activity, Alert, AdminUser } from './types';
+import { Employee, Agent, Command, Activity, Alert } from './types';
 
 // Collections
 const COLLECTIONS = {
@@ -126,7 +126,7 @@ export const agentService = {
     
     if (!snapshot.empty) {
       const docRef = doc(db, COLLECTIONS.AGENTS, snapshot.docs[0].id);
-      const updates: any = {
+      const updates: Record<string, unknown> = {
         status,
         lastSeen: Timestamp.now(),
         updatedAt: Timestamp.now()
@@ -146,7 +146,7 @@ export const agentService = {
     
     if (!snapshot.empty) {
       const docRef = doc(db, COLLECTIONS.AGENTS, snapshot.docs[0].id);
-      const updates: any = {
+      const updates: Record<string, unknown> = {
         [`blockedServices.${service}`]: blocked,
         updatedAt: Timestamp.now()
       };
@@ -197,11 +197,11 @@ export const commandService = {
   async updateStatus(
     commandId: string, 
     status: Command['status'], 
-    result?: any, 
+    result?: unknown, 
     error?: string
   ): Promise<void> {
     const docRef = doc(db, COLLECTIONS.COMMANDS, commandId);
-    const updates: any = { status };
+    const updates: Record<string, unknown> = { status };
     
     if (status === 'executing') {
       updates.executedAt = Timestamp.now();
@@ -335,7 +335,7 @@ export const alertService = {
 
   async updateStatus(alertId: string, status: Alert['status'], assignedTo?: string): Promise<void> {
     const docRef = doc(db, COLLECTIONS.ALERTS, alertId);
-    const updates: any = { status };
+    const updates: Record<string, unknown> = { status };
     
     if (assignedTo) updates.assignedTo = assignedTo;
     if (status === 'resolved') updates.resolvedAt = Timestamp.now();

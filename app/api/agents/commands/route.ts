@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import { v4 as uuidv4 } from 'uuid'
 import { commandService, agentService } from '@/lib/database'
 import { Command } from '@/lib/types'
 
@@ -15,9 +14,9 @@ function verifyAgentToken(req: NextRequest): { agentId: string; employeeId: stri
 
   try {
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { agentId: string; employeeId: string }
     return { agentId: decoded.agentId, employeeId: decoded.employeeId }
-  } catch (error) {
+  } catch {
     return null
   }
 }

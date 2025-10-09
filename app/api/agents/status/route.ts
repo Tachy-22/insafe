@@ -11,9 +11,9 @@ function verifyAgentToken(req: NextRequest): { agentId: string } | null {
 
   try {
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { agentId: string }
     return { agentId: decoded.agentId }
-  } catch (error) {
+  } catch {
     return null
   }
 }

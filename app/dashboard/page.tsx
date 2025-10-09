@@ -10,11 +10,8 @@ import {
   AlertTriangle, 
   Shield, 
   Monitor,
-  TrendingUp,
   Clock,
   ArrowUpRight,
-  Usb,
-  GitBranch,
   Circle
 } from 'lucide-react';
 import { employeeService, agentService, alertService, activityService } from '@/lib/database';
@@ -68,15 +65,6 @@ export default function DashboardPage() {
   const criticalAlerts = alerts.filter(alert => alert.severity === 'CRITICAL');
   const highRiskEmployees = employees.filter(emp => emp.riskLevel === 'HIGH' || emp.riskLevel === 'CRITICAL');
 
-  const getRiskLevelColor = (level: string) => {
-    switch (level) {
-      case 'CRITICAL': return 'bg-red-500';
-      case 'HIGH': return 'bg-orange-500';
-      case 'MEDIUM': return 'bg-yellow-500';
-      case 'LOW': return 'bg-green-500';
-      default: return 'bg-gray-500';
-    }
-  };
 
   if (!user) {
     return <div>Please log in to access the dashboard.</div>;

@@ -9,15 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Search,
-  Filter,
   RefreshCw,
   Shield,
-  AlertTriangle,
   Activity as ActivityIcon,
   TrendingUp,
   Clock,
-  Eye,
-  Users,
   Usb,
   GitBranch,
   Network,
@@ -40,7 +36,6 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { activityService } from '@/lib/database';
 import { Activity } from '@/lib/types';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
@@ -79,37 +74,6 @@ export default function ActivitiesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  useEffect(() => {
-    if (user) {
-      loadActivities();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterActivities();
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [activities, searchQuery, typeFilter, riskFilter]);
-
-  const loadActivities = async () => {
-    try {
-      setLoading(true);
-      // Request more activities for better chart data - 1000 should cover most use cases
-      const response = await fetch('/api/agents/activities?limit=1000');
-      const data = await response.json();
-
-      if (data.success) {
-        setActivities(data.activities);
-      } else {
-        toast.error('Failed to load activities');
-      }
-    } catch (error) {
-      console.error('Error loading activities:', error);
-      toast.error('Failed to load activities');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const filterActivities = () => {
     let filtered = activities;
 
@@ -135,6 +99,39 @@ export default function ActivitiesPage() {
 
     setFilteredActivities(filtered);
   };
+
+  useEffect(() => {
+    if (user) {
+      loadActivities();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    filterActivities();
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [activities, searchQuery, typeFilter, riskFilter, filterActivities]);
+
+  const loadActivities = async () => {
+    try {
+      setLoading(true);
+      // Request more activities for better chart data - 1000 should cover most use cases
+      const response = await fetch('/api/agents/activities?limit=1000');
+      const data = await response.json();
+
+      if (data.success) {
+        setActivities(data.activities);
+      } else {
+        toast.error('Failed to load activities');
+      }
+    } catch (error) {
+      console.error('Error loading activities:', error);
+      toast.error('Failed to load activities');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   // Pagination logic
   const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
@@ -213,7 +210,7 @@ export default function ActivitiesPage() {
         } else if (typeof activity.timestamp === 'string') {
           activityTime = new Date(activity.timestamp);
         } else {
-          activityTime = new Date(activity.timestamp as any);
+          activityTime = new Date(activity.timestamp as Date);
         }
         activityTimes.push(activityTime);
       } catch (error) {
@@ -316,7 +313,7 @@ export default function ActivitiesPage() {
         } else if (typeof activity.timestamp === 'string') {
           activityTime = new Date(activity.timestamp);
         } else {
-          activityTime = new Date(activity.timestamp as any);
+          activityTime = new Date(activity.timestamp as unknown as Date);
         }
 
         // Find the appropriate time slot
@@ -670,7 +667,7 @@ export default function ActivitiesPage() {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <div className={`w-2 h-2 rounded-full ${getRiskLevelColor(activity.riskLevel)}`} />
-                          <Badge variant={getRiskLevelVariant(activity.riskLevel) as any} className="text-xs">
+                          <Badge variant={getRiskLevelVariant(activity.riskLevel) as "default" | "destructive" | "outline" | "secondary"} className="text-xs">
                             {activity.riskLevel}
                           </Badge>
                         </div>
@@ -704,7 +701,7 @@ export default function ActivitiesPage() {
                     Showing {startIndex + 1} to {Math.min(endIndex, filteredActivities.length)} of {filteredActivities.length} activities
                   </span>
                 </div>
-                
+
                 <div className="flex items-center space-x-6">
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium">Rows per page</p>
@@ -727,13 +724,13 @@ export default function ActivitiesPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-medium">
                       Page {currentPage} of {totalPages}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center space-x-1">
                     <Button
                       variant="outline"

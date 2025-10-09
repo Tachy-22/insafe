@@ -12,18 +12,18 @@ export interface Agent {
   registeredAt: string
   lastSeen: string
   status: 'registered' | 'online' | 'offline' | 'error'
-  systemInfo?: any
+  systemInfo?: Record<string, unknown>
 }
 
 export interface Command {
   id: string
   agentId: string
   type: 'disable-usb' | 'enable-usb' | 'block-git' | 'unblock-git' | 'get-status' | 'restart-agent'
-  payload?: any
+  payload?: Record<string, unknown>
   status: 'pending' | 'completed' | 'failed'
   createdAt: string
   completedAt?: string
-  result?: any
+  result?: unknown
   error?: string
 }
 
@@ -33,7 +33,7 @@ export interface Activity {
   type: 'usb_detected' | 'usb_blocked' | 'git_push_blocked' | 'file_access' | 'system_event'
   description: string
   timestamp: string
-  metadata?: any
+  metadata?: Record<string, unknown>
 }
 
 // Global storage
@@ -59,7 +59,7 @@ class AgentStore {
     return this.agents.delete(agentId)
   }
 
-  updateAgentStatus(agentId: string, status: Agent['status'], systemInfo?: any) {
+  updateAgentStatus(agentId: string, status: Agent['status'], systemInfo?: Record<string, unknown>) {
     const agent = this.agents.get(agentId)
     if (agent) {
       agent.status = status
@@ -90,7 +90,7 @@ class AgentStore {
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
   }
 
-  updateCommandStatus(commandId: string, status: Command['status'], result?: any, error?: string) {
+  updateCommandStatus(commandId: string, status: Command['status'], result?: unknown, error?: string) {
     const command = this.commands.get(commandId)
     if (command) {
       command.status = status

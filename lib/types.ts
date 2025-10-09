@@ -59,13 +59,13 @@ export interface Command {
   agentId: string;
   employeeId: string;
   type: 'disable-usb' | 'enable-usb' | 'block-git' | 'unblock-git' | 'get-status' | 'restart-agent';
-  payload?: any;
+  payload?: Record<string, unknown>;
   status: 'pending' | 'executing' | 'completed' | 'failed';
   issuedBy: string; // Admin user ID
   createdAt: Timestamp;
   executedAt?: Timestamp;
   completedAt?: Timestamp;
-  result?: any;
+  result?: unknown;
   error?: string;
 }
 
@@ -95,7 +95,7 @@ export interface Alert {
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   title: string;
   description: string;
-  details: any;
+  details: Record<string, unknown>;
   status: 'open' | 'investigating' | 'resolved' | 'false_positive';
   assignedTo?: string;
   createdAt: Timestamp;

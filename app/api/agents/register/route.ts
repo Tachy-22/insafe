@@ -5,7 +5,7 @@ import { agentService, employeeService } from '@/lib/database'
 import { Timestamp } from 'firebase/firestore'
 
 // Registration tokens for pre-authorization
-let registrationTokens = new Map()
+const registrationTokens = new Map()
 
 export interface AgentRegistrationRequest {
   hostname: string

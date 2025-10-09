@@ -1,5 +1,5 @@
 import { Server as NetServer } from 'http'
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiResponse } from 'next'
 import { Server as SocketIOServer } from 'socket.io'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
@@ -29,11 +29,11 @@ export interface Command {
   id: string
   agentId: string
   type: 'disable-usb' | 'enable-usb' | 'block-git' | 'unblock-git' | 'get-status' | 'restart-agent'
-  payload?: any
+  payload?: Record<string, unknown>
   status: 'pending' | 'sent' | 'completed' | 'failed'
   createdAt: Date
   completedAt?: Date
-  result?: any
+  result?: unknown
   error?: string
 }
 
@@ -61,11 +61,11 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         return next(new Error('Authentication error'))
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as Record<string, unknown>
       socket.data.agentId = decoded.agentId
       socket.data.agent = decoded
       next()
-    } catch (err) {
+    } catch {
       next(new Error('Authentication error'))
     }
   })
@@ -97,7 +97,7 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
     })
 
     // Handle agent responses
-    socket.on('command-response', (data: { commandId: string, result?: any, error?: string }) => {
+    socket.on('command-response', (data: { commandId: string, result?: unknown, error?: string }) => {
       const command = commands.get(data.commandId)
       if (command) {
         command.status = data.error ? 'failed' : 'completed'
@@ -109,13 +109,13 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
     })
 
     // Handle activity reports
-    socket.on('activity-report', (activity: any) => {
+    socket.on('activity-report', (activity: Record<string, unknown>) => {
       console.log(`Activity from ${agentId}:`, activity)
       // TODO: Store activity in database
     })
 
     // Handle heartbeat
-    socket.on('heartbeat', (data: { status: string, systemInfo?: any }) => {
+    socket.on('heartbeat', (data: { status: string, systemInfo?: Record<string, unknown> }) => {
       const agent = agents.get(agentId)
       if (agent) {
         agent.lastSeen = new Date()
@@ -142,7 +142,7 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
 }
 
 // Helper functions for sending commands
-export function sendCommandToAgent(agentId: string, type: Command['type'], payload?: any): string {
+export function sendCommandToAgent(agentId: string, type: Command['type'], payload?: Record<string, unknown>): string {
   const command: Command = {
     id: uuidv4(),
     agentId,
