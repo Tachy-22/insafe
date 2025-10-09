@@ -140,6 +140,21 @@ export const agentService = {
     }
   },
 
+  async updateBlockingState(agentId: string, service: 'git' | 'usb', blocked: boolean): Promise<void> {
+    const q = query(collection(db, COLLECTIONS.AGENTS), where('agentId', '==', agentId));
+    const snapshot = await getDocs(q);
+    
+    if (!snapshot.empty) {
+      const docRef = doc(db, COLLECTIONS.AGENTS, snapshot.docs[0].id);
+      const updates: any = {
+        [`blockedServices.${service}`]: blocked,
+        updatedAt: Timestamp.now()
+      };
+      
+      await updateDoc(docRef, updates);
+    }
+  },
+
   async getOnlineAgents(): Promise<Agent[]> {
     const fiveMinutesAgo = Timestamp.fromDate(new Date(Date.now() - 5 * 60 * 1000));
     const q = query(
@@ -160,6 +175,12 @@ export const commandService = {
       createdAt: Timestamp.now()
     });
     return docRef.id;
+  },
+
+  async getById(commandId: string): Promise<Command | null> {
+    const docRef = doc(db, COLLECTIONS.COMMANDS, commandId);
+    const snapshot = await getDoc(docRef);
+    return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } as Command : null;
   },
 
   async getPendingForAgent(agentId: string): Promise<Command[]> {
@@ -207,15 +228,51 @@ export const commandService = {
 
 // Activity operations
 export const activityService = {
-  async create(activity: Omit<Activity, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, COLLECTIONS.ACTIVITIES), activity);
+  async create(activity: Omit<Activity, 'id' | 'timestamp'>): Promise<string> {
+    const docRef = await addDoc(collection(db, COLLECTIONS.ACTIVITIES), {
+      ...activity,
+      timestamp: Timestamp.now()
+    });
     return docRef.id;
   },
 
-  async getByEmployee(employeeId: string, limitTo = 100): Promise<Activity[]> {
+  async getByEmployeeId(employeeId: string, limitTo = 100): Promise<Activity[]> {
     const q = query(
       collection(db, COLLECTIONS.ACTIVITIES),
       where('employeeId', '==', employeeId),
+      orderBy('timestamp', 'desc'),
+      limit(limitTo)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
+  },
+
+  async getByAgentId(agentId: string, limitTo = 100): Promise<Activity[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ACTIVITIES),
+      where('agentId', '==', agentId),
+      orderBy('timestamp', 'desc'),
+      limit(limitTo)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
+  },
+
+  async getByType(type: Activity['type'], limitTo = 100): Promise<Activity[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ACTIVITIES),
+      where('type', '==', type),
+      orderBy('timestamp', 'desc'),
+      limit(limitTo)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
+  },
+
+  async getByRiskLevel(riskLevel: Activity['riskLevel'], limitTo = 100): Promise<Activity[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ACTIVITIES),
+      where('riskLevel', '==', riskLevel),
       orderBy('timestamp', 'desc'),
       limit(limitTo)
     );

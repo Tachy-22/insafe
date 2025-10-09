@@ -67,8 +67,29 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'commandId required' }, { status: 400 })
       }
 
+      // Get the command to check its type
+      const command = await commandService.getById(commandId)
+      
       // Update command status
       await commandService.updateStatus(commandId, error ? 'failed' : 'completed', result, error)
+
+      // Update agent blocking state if command succeeded
+      if (!error && command) {
+        switch (command.type) {
+          case 'block-git':
+            await agentService.updateBlockingState(auth.agentId, 'git', true)
+            break
+          case 'unblock-git':
+            await agentService.updateBlockingState(auth.agentId, 'git', false)
+            break
+          case 'disable-usb':
+            await agentService.updateBlockingState(auth.agentId, 'usb', true)
+            break
+          case 'enable-usb':
+            await agentService.updateBlockingState(auth.agentId, 'usb', false)
+            break
+        }
+      }
 
       console.log(`Command ${commandId} completed by agent ${auth.agentId}`)
 

@@ -45,6 +45,11 @@ export interface Agent {
     gitControl: boolean;
     fileMonitoring: boolean;
   };
+  // Current blocking states
+  blockedServices: {
+    git: boolean;
+    usb: boolean;
+  };
   registeredAt: Timestamp;
   updatedAt: Timestamp;
 }

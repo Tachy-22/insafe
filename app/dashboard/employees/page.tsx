@@ -142,6 +142,8 @@ export default function EmployeesPage() {
       if (result.success) {
         const employee = employees.find(emp => emp.id === employeeId);
         toast.success(`Command "${commandType}" sent to ${employee?.firstName} ${employee?.lastName}'s device`);
+        // Refresh data to get updated blocking states
+        loadEmployeesData();
       } else {
         toast.error(`Failed to send command: ${result.error}`);
       }
@@ -150,20 +152,14 @@ export default function EmployeesPage() {
     }
   };
 
-  const handleDisableUSB = (employeeId: string) => {
-    sendAgentCommand(employeeId, 'disable-usb');
+  const toggleUSBBlocking = (employeeId: string, agent: Agent) => {
+    const command = agent.blockedServices?.usb ? 'enable-usb' : 'disable-usb';
+    sendAgentCommand(employeeId, command);
   };
 
-  const handleEnableUSB = (employeeId: string) => {
-    sendAgentCommand(employeeId, 'enable-usb');
-  };
-
-  const handleBlockGit = (employeeId: string) => {
-    sendAgentCommand(employeeId, 'block-git');
-  };
-
-  const handleUnblockGit = (employeeId: string) => {
-    sendAgentCommand(employeeId, 'unblock-git');
+  const toggleGitBlocking = (employeeId: string, agent: Agent) => {
+    const command = agent.blockedServices?.git ? 'unblock-git' : 'block-git';
+    sendAgentCommand(employeeId, command);
   };
 
   const handleGetAgentStatus = (employeeId: string) => {
@@ -445,10 +441,6 @@ export default function EmployeesPage() {
                               <Activity className="mr-2 h-4 w-4" />
                               Activity History
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleAdjustRisk(employee.id)}>
-                              <Shield className="mr-2 h-4 w-4" />
-                              Adjust Risk Level
-                            </DropdownMenuItem>
                             
                             {agent && agentOnline && (
                               <>
@@ -459,27 +451,31 @@ export default function EmployeesPage() {
                                   Check Agent Status
                                 </DropdownMenuItem>
                                 
-                                <DropdownMenuItem onClick={() => handleDisableUSB(employee.id)} className="text-red-600">
-                                  <Usb className="mr-2 h-4 w-4" />
-                                  Disable USB
-                                </DropdownMenuItem>
-                                
-                                <DropdownMenuItem onClick={() => handleEnableUSB(employee.id)} className="text-green-600">
-                                  <Usb className="mr-2 h-4 w-4" />
-                                  Enable USB
-                                </DropdownMenuItem>
-                                
-                                <DropdownMenuItem onClick={() => handleBlockGit(employee.id)} className="text-red-600">
+                                {/* Git Toggle - Single item with dynamic label */}
+                                <DropdownMenuItem 
+                                  onClick={() => toggleGitBlocking(employee.id, agent)}
+                                  className={agent.blockedServices?.git ? "text-green-600" : "text-red-600"}
+                                >
                                   <GitBranch className="mr-2 h-4 w-4" />
-                                  Block Git
+                                  {agent.blockedServices?.git ? 'Unblock Git' : 'Block Git'}
                                 </DropdownMenuItem>
                                 
-                                <DropdownMenuItem onClick={() => handleUnblockGit(employee.id)} className="text-green-600">
-                                  <GitBranch className="mr-2 h-4 w-4" />
-                                  Unblock Git
+                                {/* USB Toggle - Single item with dynamic label */}
+                                <DropdownMenuItem 
+                                  onClick={() => toggleUSBBlocking(employee.id, agent)}
+                                  className={agent.blockedServices?.usb ? "text-green-600" : "text-red-600"}
+                                >
+                                  <Usb className="mr-2 h-4 w-4" />
+                                  {agent.blockedServices?.usb ? 'Enable USB' : 'Disable USB'}
                                 </DropdownMenuItem>
                               </>
                             )}
+                            
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleAdjustRisk(employee.id)}>
+                              <Shield className="mr-2 h-4 w-4" />
+                              Adjust Risk Level
+                            </DropdownMenuItem>
                             
                             {employee.status === 'ACTIVE' && (
                               <>

@@ -101,6 +101,11 @@ export async function POST(req: NextRequest) {
           uptime: 0,
           memory: { total: 0, free: 0 },
           cpu: { count: 0, usage: 0 }
+        },
+        // Ensure blockedServices field exists
+        blockedServices: existingAgent.blockedServices || {
+          git: false,
+          usb: false
         }
       })
     } else {
@@ -124,6 +129,10 @@ export async function POST(req: NextRequest) {
           usbControl: true,
           gitControl: true,
           fileMonitoring: true
+        },
+        blockedServices: {
+          git: false,
+          usb: false
         }
       })
     }
