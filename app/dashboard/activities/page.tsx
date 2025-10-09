@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,7 +74,7 @@ export default function ActivitiesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  const filterActivities = () => {
+  const filterActivities = useCallback(() => {
     let filtered = activities;
 
     // Search filter
@@ -98,7 +98,7 @@ export default function ActivitiesPage() {
     }
 
     setFilteredActivities(filtered);
-  };
+  }, [activities, searchQuery, typeFilter, riskFilter]);
 
   useEffect(() => {
     if (user) {

@@ -57,7 +57,7 @@ export async function seedDatabase() {
       console.log(`✅ Created employee: ${empData.firstName} ${empData.lastName} (${employeeId})`);
       
       // Create sample alerts for high-risk employees
-      if (empData.riskLevel === 'HIGH' || empData.riskLevel === 'CRITICAL') {
+      if (empData.riskLevel === 'HIGH') {
         await alertService.create({
           employeeId,
           type: 'high_risk_activity',
@@ -86,7 +86,6 @@ export async function seedDatabase() {
         },
         riskLevel: 'LOW',
         blocked: false,
-        timestamp: Timestamp.now()
       });
     }
     
