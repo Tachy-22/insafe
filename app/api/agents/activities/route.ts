@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
     const agentId = searchParams.get('agentId')
     const type = searchParams.get('type')
     const riskLevel = searchParams.get('riskLevel')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const limit = parseInt(searchParams.get('limit') || '1000')
 
     let activities: Activity[]
 

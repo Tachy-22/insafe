@@ -126,7 +126,7 @@ export const agentService = {
     
     if (!snapshot.empty) {
       const docRef = doc(db, COLLECTIONS.AGENTS, snapshot.docs[0].id);
-      const updates: Record<string, unknown> = {
+      const updates: any = {
         status,
         lastSeen: Timestamp.now(),
         updatedAt: Timestamp.now()
@@ -146,7 +146,7 @@ export const agentService = {
     
     if (!snapshot.empty) {
       const docRef = doc(db, COLLECTIONS.AGENTS, snapshot.docs[0].id);
-      const updates: Record<string, unknown> = {
+      const updates: any = {
         [`blockedServices.${service}`]: blocked,
         updatedAt: Timestamp.now()
       };
@@ -236,7 +236,7 @@ export const activityService = {
     return docRef.id;
   },
 
-  async getByEmployeeId(employeeId: string, limitTo = 100): Promise<Activity[]> {
+  async getByEmployeeId(employeeId: string, limitTo = 1000): Promise<Activity[]> {
     const q = query(
       collection(db, COLLECTIONS.ACTIVITIES),
       where('employeeId', '==', employeeId),
@@ -247,7 +247,7 @@ export const activityService = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
   },
 
-  async getByAgentId(agentId: string, limitTo = 100): Promise<Activity[]> {
+  async getByAgentId(agentId: string, limitTo = 1000): Promise<Activity[]> {
     const q = query(
       collection(db, COLLECTIONS.ACTIVITIES),
       where('agentId', '==', agentId),
@@ -258,7 +258,7 @@ export const activityService = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
   },
 
-  async getByType(type: Activity['type'], limitTo = 100): Promise<Activity[]> {
+  async getByType(type: Activity['type'], limitTo = 1000): Promise<Activity[]> {
     const q = query(
       collection(db, COLLECTIONS.ACTIVITIES),
       where('type', '==', type),
@@ -269,7 +269,7 @@ export const activityService = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
   },
 
-  async getByRiskLevel(riskLevel: Activity['riskLevel'], limitTo = 100): Promise<Activity[]> {
+  async getByRiskLevel(riskLevel: Activity['riskLevel'], limitTo = 1000): Promise<Activity[]> {
     const q = query(
       collection(db, COLLECTIONS.ACTIVITIES),
       where('riskLevel', '==', riskLevel),
@@ -280,7 +280,7 @@ export const activityService = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
   },
 
-  async getRecent(limitTo = 50): Promise<Activity[]> {
+  async getRecent(limitTo = 1000): Promise<Activity[]> {
     const q = query(
       collection(db, COLLECTIONS.ACTIVITIES),
       orderBy('timestamp', 'desc'),
