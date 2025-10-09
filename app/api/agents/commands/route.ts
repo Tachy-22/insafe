@@ -87,6 +87,18 @@ export async function POST(req: NextRequest) {
           case 'enable-usb':
             await agentService.updateBlockingState(auth.agentId, 'usb', false)
             break
+          case 'block-file-uploads':
+            await agentService.updateBlockingState(auth.agentId, 'fileUploads', true)
+            break
+          case 'unblock-file-uploads':
+            await agentService.updateBlockingState(auth.agentId, 'fileUploads', false)
+            break
+          case 'block-email-attachments':
+            await agentService.updateBlockingState(auth.agentId, 'emailAttachments', true)
+            break
+          case 'unblock-email-attachments':
+            await agentService.updateBlockingState(auth.agentId, 'emailAttachments', false)
+            break
         }
       }
 
@@ -108,7 +120,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate command type
-    const validTypes = ['disable-usb', 'enable-usb', 'block-git', 'unblock-git', 'get-status', 'restart-agent']
+    const validTypes = [
+      'disable-usb', 'enable-usb', 
+      'block-git', 'unblock-git', 
+      'block-file-uploads', 'unblock-file-uploads',
+      'block-email-attachments', 'unblock-email-attachments',
+      'get-status', 'restart-agent'
+    ]
     if (!validTypes.includes(type)) {
       return NextResponse.json({
         error: 'Invalid command type'

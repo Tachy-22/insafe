@@ -29,7 +29,9 @@ import {
   Usb,
   GitBranch,
   Circle,
-  Monitor
+  Monitor,
+  Cloud,
+  Mail
 } from 'lucide-react';
 import { employeeService, agentService } from '@/lib/database';
 import { Employee, Agent } from '@/lib/types';
@@ -157,6 +159,16 @@ export default function EmployeesPage() {
 
   const toggleGitBlocking = (employeeId: string, agent: Agent) => {
     const command = agent.blockedServices?.git ? 'unblock-git' : 'block-git';
+    sendAgentCommand(employeeId, command);
+  };
+
+  const toggleFileUploadBlocking = (employeeId: string, agent: Agent) => {
+    const command = agent.blockedServices?.fileUploads ? 'unblock-file-uploads' : 'block-file-uploads';
+    sendAgentCommand(employeeId, command);
+  };
+
+  const toggleEmailAttachmentBlocking = (employeeId: string, agent: Agent) => {
+    const command = agent.blockedServices?.emailAttachments ? 'unblock-email-attachments' : 'block-email-attachments';
     sendAgentCommand(employeeId, command);
   };
 
@@ -465,6 +477,24 @@ export default function EmployeesPage() {
                                 >
                                   <Usb className="mr-2 h-4 w-4" />
                                   {agent.blockedServices?.usb ? 'Enable USB' : 'Disable USB'}
+                                </DropdownMenuItem>
+                                
+                                {/* File Upload Toggle */}
+                                <DropdownMenuItem 
+                                  onClick={() => toggleFileUploadBlocking(employee.id, agent)}
+                                  className={agent.blockedServices?.fileUploads ? "text-green-600" : "text-red-600"}
+                                >
+                                  <Cloud className="mr-2 h-4 w-4" />
+                                  {agent.blockedServices?.fileUploads ? 'Unblock File Uploads' : 'Block File Uploads'}
+                                </DropdownMenuItem>
+                                
+                                {/* Email Attachment Toggle */}
+                                <DropdownMenuItem 
+                                  onClick={() => toggleEmailAttachmentBlocking(employee.id, agent)}
+                                  className={agent.blockedServices?.emailAttachments ? "text-green-600" : "text-red-600"}
+                                >
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  {agent.blockedServices?.emailAttachments ? 'Unblock Email Attachments' : 'Block Email Attachments'}
                                 </DropdownMenuItem>
                               </>
                             )}

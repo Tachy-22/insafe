@@ -102,10 +102,12 @@ export async function POST(req: NextRequest) {
           memory: { total: 0, free: 0 },
           cpu: { count: 0, usage: 0 }
         },
-        // Ensure blockedServices field exists
-        blockedServices: existingAgent.blockedServices || {
-          git: false,
-          usb: false
+        // Ensure blockedServices field exists with all services
+        blockedServices: {
+          git: existingAgent.blockedServices?.git || false,
+          usb: existingAgent.blockedServices?.usb || false,
+          fileUploads: existingAgent.blockedServices?.fileUploads || false,
+          emailAttachments: existingAgent.blockedServices?.emailAttachments || false
         }
       })
     } else {
@@ -128,11 +130,15 @@ export async function POST(req: NextRequest) {
         capabilities: {
           usbControl: true,
           gitControl: true,
-          fileMonitoring: true
+          fileMonitoring: true,
+          fileUploadControl: true,
+          emailAttachmentControl: true
         },
         blockedServices: {
           git: false,
-          usb: false
+          usb: false,
+          fileUploads: false,
+          emailAttachments: false
         }
       })
     }

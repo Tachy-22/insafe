@@ -140,7 +140,7 @@ export const agentService = {
     }
   },
 
-  async updateBlockingState(agentId: string, service: 'git' | 'usb', blocked: boolean): Promise<void> {
+  async updateBlockingState(agentId: string, service: 'git' | 'usb' | 'fileUploads' | 'emailAttachments', blocked: boolean): Promise<void> {
     const q = query(collection(db, COLLECTIONS.AGENTS), where('agentId', '==', agentId));
     const snapshot = await getDocs(q);
     

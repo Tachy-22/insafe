@@ -44,11 +44,15 @@ export interface Agent {
     usbControl: boolean;
     gitControl: boolean;
     fileMonitoring: boolean;
+    fileUploadControl: boolean;
+    emailAttachmentControl: boolean;
   };
   // Current blocking states
   blockedServices: {
     git: boolean;
     usb: boolean;
+    fileUploads: boolean;
+    emailAttachments: boolean;
   };
   registeredAt: Timestamp;
   updatedAt: Timestamp;
@@ -58,7 +62,7 @@ export interface Command {
   id: string;
   agentId: string;
   employeeId: string;
-  type: 'disable-usb' | 'enable-usb' | 'block-git' | 'unblock-git' | 'get-status' | 'restart-agent';
+  type: 'disable-usb' | 'enable-usb' | 'block-git' | 'unblock-git' | 'block-file-uploads' | 'unblock-file-uploads' | 'block-email-attachments' | 'unblock-email-attachments' | 'get-status' | 'restart-agent';
   payload?: Record<string, unknown>;
   status: 'pending' | 'executing' | 'completed' | 'failed';
   issuedBy: string; // Admin user ID

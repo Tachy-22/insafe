@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,17 +26,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { 
-  Shield, 
-  Users, 
-  Activity, 
-  AlertTriangle, 
-  Settings, 
+import {
+  Shield,
+  Users,
+  Activity,
+  AlertTriangle,
+  Settings,
   LogOut,
   Bell
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 export default function DashboardLayout({
   children,
@@ -122,12 +123,22 @@ export default function DashboardLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center space-x-2 px-2">
-            <Shield className="h-6 w-6" />
-            <span className="font-bold text-lg">InSafe</span>
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/wema-logo.jpeg"
+              alt="Wema Bank"
+              width={64}
+              height={64}
+              className="h-16 w-16 object-contain rounded"
+            />
+            <div>
+              <h1 className="text-lg font-bold text-sidebar-foreground">InSafe</h1>
+              <p className="text-xs text-sidebar-foreground/70">Wema Bank</p>
+            </div>
           </div>
+
         </SidebarHeader>
-        
+
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
@@ -146,7 +157,7 @@ export default function DashboardLayout({
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        
+
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -180,7 +191,7 @@ export default function DashboardLayout({
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      
+
       <SidebarInset>
         {/* Top bar with trigger and notifications */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -191,7 +202,7 @@ export default function DashboardLayout({
             </Button>
           </div>
         </header>
-        
+
         {/* Main Content */}
         <main className="flex-1 overflow-auto p-4">
           {children}
