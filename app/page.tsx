@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Home from '@/components/Home';
+import { Header } from '@/components/Header';
 
 export default function HomePage() {
   const router = useRouter();
@@ -11,14 +13,15 @@ export default function HomePage() {
     const auth = localStorage.getItem('auth');
     if (auth === 'true') {
       router.push('/dashboard');
-    } else {
-      router.push('/auth/login');
     }
+    // else {
+    //   router.push('/auth/login');
+    // }
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
+    <div className="min-h-screen flex flex-col items-center justify-center">
+      <Header />
+      <Home />    </div>
   );
 }
