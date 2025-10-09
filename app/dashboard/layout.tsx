@@ -198,7 +198,7 @@ export default function DashboardLayout({
           <SidebarTrigger className="-ml-1" />
           <div className="flex flex-1 items-center justify-end space-x-2">
             <Button variant="ghost" size="sm">
-              <Bell className="h-4 w-4" />here
+              <Bell className="h-4 w-4" />
             </Button>
           </div>
         </header>
