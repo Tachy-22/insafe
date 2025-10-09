@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
           employeeId: auth.employeeId,
           agentId: auth.agentId,
           type: mapActivityType(activity.type),
-          description: activity.description,
+          description: activity.description || 'No description provided',
           details: {
             ...activity.metadata,
             originalType: activity.type,
@@ -138,8 +138,8 @@ function mapActivityType(agentType: string): Activity['type'] {
 }
 
 // Calculate risk level based on activity type and content
-function calculateRiskLevel(type: string, description: string): Activity['riskLevel'] {
-  const lowerDesc = description.toLowerCase()
+function calculateRiskLevel(type: string, description: string | undefined): Activity['riskLevel'] {
+  const lowerDesc = (description || '').toLowerCase()
   
   // High risk indicators
   if (lowerDesc.includes('password') || 
